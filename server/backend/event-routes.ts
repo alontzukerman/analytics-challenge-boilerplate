@@ -5,8 +5,12 @@ import { Request, Response } from "express";
 
 // some useful database functions in here:
 import {
+  getAllEvents,
+  getSessionsByDay,
+  getSessionsByHour,
+  getAllFilteredEvents
 } from "./database";
-import { Event, weeklyRetentionObject } from "../../client/src/models/event";
+import { browser, Event, eventName, weeklyRetentionObject } from "../../client/src/models/event";
 import { ensureAuthenticated, validateMiddleware } from "./helpers";
 
 import {
@@ -15,33 +19,50 @@ import {
   userFieldsValidator,
   isUserValidator,
 } from "./validators";
+import { keys } from "lodash";
+import { filter } from "bluebird";
 const router = express.Router();
 
 // Routes
 
-interface Filter {
-  sorting: string;
-  type: string;
-  browser: string;
+export interface Filter {
+  sorting: '+date' | '-date' | 'none';
+  type: eventName | 'all';
+  browser: browser | 'all';
   search: string;
   offset: number;
 }
 
 router.get('/all', (req: Request, res: Response) => {
-  res.send('/all')
-    
+  const allEvents: Event[] = getAllEvents();
+  res.status(200).json(allEvents);
 });
 
 router.get('/all-filtered', (req: Request, res: Response) => {
-  res.send('/all-filtered')
+  const filters: Filter = req.query;
+  console.log(filters);
+  const allFilteredEvents: Event[] = getAllFilteredEvents(filters);
+
+
+  res.send({
+    events: allFilteredEvents.slice(0,filters.offset),
+    more: allFilteredEvents.length>10
+  })
 });
 
 router.get('/by-days/:offset', (req: Request, res: Response) => {
-  res.send('/by-days/:offset')
+  const offset = +req.params.offset || 0 ;
+  const sessionsByDate = getSessionsByDay();
+
+  const lastWeekSessions = sessionsByDate.slice(sessionsByDate.length-(offset+7),sessionsByDate.length-offset);
+  res.status(200).json(lastWeekSessions);
 });
 
 router.get('/by-hours/:offset', (req: Request, res: Response) => {
-  res.send('/by-hours/:offset')
+  const offset = +req.params.offset || 0 ;
+  let temp_date = ((new Date().getTime())-(offset*24*60*60*1000));
+  const selectedDate = getSessionsByHour(temp_date);
+  res.status(200).json(selectedDate)
 });
 
 router.get('/today', (req: Request, res: Response) => {

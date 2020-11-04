@@ -69,6 +69,9 @@ import {
   isCommentNotification,
 } from "../../client/src/utils/transactionUtils";
 import { DbSchema } from "../../client/src/models/db-schema";
+import e from "express";
+import { keys } from "lodash";
+import { Filter } from './event-routes'
 
 
 export type TDatabase = {
@@ -108,6 +111,100 @@ export const seedDatabase = () => {
   return;
 };
 
+export const getAllEvents = () => db.get(EVENT_TABLE).value();
+
+export const getSessionsByDay = () => {
+ const result = db
+  .get(EVENT_TABLE)
+  .map(event=>{
+    return {
+      session_id: event.session_id,
+      date: new Date(event.date).toISOString().slice(0,10)
+    }
+  })
+  .sortBy('date')
+  .value();
+  let temp = [];
+  let temp_date = result[0].date ;
+  let counter = 1 ;
+  for(let i=1 ; i<result.length ; i++){
+    if(result[i].date === temp_date)
+      counter++;
+    else {
+      temp.push({date: temp_date, count: counter});
+      temp_date = result[i].date;
+      counter = 1;
+    }
+  }
+  temp.push({date: temp_date, count: counter});
+  return temp;
+}
+
+export const getSessionsByHour = (selectedDate: number) => {
+  const result = db
+    .get(EVENT_TABLE)
+    .map(event=>{
+      return ({
+        session_id: event.session_id,
+        date: new Date(event.date).toISOString().slice(0,10),
+        hour: new Date(event.date).toISOString().slice(11,13)+":00"
+      });
+    })
+    .filter(event=>{
+      return event.date === new Date(selectedDate).toISOString().slice(0,10);
+    })
+    .sortBy('hour')
+    .value();
+    let temp = [];
+    const hours = [
+      '00:00','01:00','02:00','03:00','04:00',
+      '05:00','06:00','07:00','08:00','09:00',
+      '10:00','11:00','12:00','13:00','14:00',
+      '15:00','16:00','17:00','18:00','19:00',
+      '20:00','21:00','22:00','23:00'
+    ];
+    let hours_index = 0;
+    let temp_hour = hours[hours_index];
+    let counter = 0 ;
+
+    for(let i=0 ; i<result.length ; i++){
+      if(result[i].hour === temp_hour) counter++
+      else {
+        temp.push({hour: temp_hour,count: counter});
+        temp_hour = hours[++hours_index] ;
+        counter = 0;
+      }
+    }
+    temp.push({hour: temp_hour,count: counter});
+    while(hours_index < hours.length-1){
+      temp_hour = hours[++hours_index] ;
+      temp.push({hour: temp_hour,count: 0});
+    }
+    return temp ;
+}
+
+export const getAllFilteredEvents = (filters: Filter) => {
+  const result = db
+    .get(EVENT_TABLE)
+    .filter(event => {
+      let isFiltered = true ;
+      keys(filters).forEach((key,i)=>{
+        if(isFiltered){
+          if(key === "type") isFiltered = filters.type == "all" ? true : event.name == filters.type ;
+          if(key === "browser") isFiltered = filters.browser == "all" ? true : event.browser == filters.browser ;
+          if(key === "search") isFiltered = event.name.includes(filters.search) ;
+        }
+        else return false ;
+      })
+      return isFiltered ;
+    })
+    .sortBy(()=>{
+      return filters.sorting != "none" ? 'date' : '';
+    })
+    .value();
+  if(filters.sorting[0] === '-') return result.reverse();
+  else return result ;
+}
 export const getAllUsers = () => db.get(USER_TABLE).value();
 
 export const getAllPublicTransactions = () =>
