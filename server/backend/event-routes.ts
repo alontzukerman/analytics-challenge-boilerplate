@@ -8,7 +8,9 @@ import {
   getAllEvents,
   getSessionsByDay,
   getSessionsByHour,
-  getAllFilteredEvents
+  getAllFilteredEvents,
+  addNewEvent,
+  getRetentionCohort
 } from "./database";
 import { browser, Event, eventName, weeklyRetentionObject } from "../../client/src/models/event";
 import { ensureAuthenticated, validateMiddleware } from "./helpers";
@@ -19,18 +21,17 @@ import {
   userFieldsValidator,
   isUserValidator,
 } from "./validators";
-import { keys } from "lodash";
 import { filter } from "bluebird";
 const router = express.Router();
 
 // Routes
 
 export interface Filter {
-  sorting: '+date' | '-date' | 'none';
-  type: eventName | 'all';
-  browser: browser | 'all';
-  search: string;
-  offset: number;
+  sorting?: '+date' | '-date';
+  type?: eventName | 'all';
+  browser?: browser | 'all';
+  search?: string;
+  offset?: number;
 }
 
 router.get('/all', (req: Request, res: Response) => {
@@ -44,7 +45,7 @@ router.get('/all-filtered', (req: Request, res: Response) => {
   const allFilteredEvents: Event[] = getAllFilteredEvents(filters);
 
 
-  res.send({
+  res.status(200).json({
     events: allFilteredEvents.slice(0,filters.offset),
     more: allFilteredEvents.length>10
   })
@@ -74,7 +75,8 @@ router.get('/week', (req: Request, res: Response) => {
 });
 
 router.get('/retention', (req: Request, res: Response) => {
-  const {dayZero} = req.query
+  const {dayZero} = req.query ;
+  // const weeklyRetentionCohort: weeklyRetentionObject[] = getRetentionCohort(dayZero)
   res.send('/retention')
 });
 router.get('/:eventId',(req : Request, res : Response) => {
@@ -82,7 +84,9 @@ router.get('/:eventId',(req : Request, res : Response) => {
 });
 
 router.post('/', (req: Request, res: Response) => {
-  res.send('/')
+  const newEvent: Event = req.body ;
+  addNewEvent(newEvent);
+  res.status(200).json("new Event created");
 });
 
 router.get('/chart/os/:time',(req: Request, res: Response) => {

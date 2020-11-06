@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import axios from 'axios';
 import { Event } from '../../models/event';
+import StyledContainer from '../../containers/StyledContainer';
 
 const style = {
     gridArea: '3 / 4 / 4 / 7',
@@ -34,14 +35,13 @@ const LogEvents: React.FC = () => {
         getLogEvents();
     },[sorting,type,browser,search,offset]);
     return (
-        <div id="logEvents" style={style}>
+        <StyledContainer id="logEvents" style={style}>
             <div id="log-filters" style={{display: 'flex', flexDirection: 'column'}}>
                 <input onChange={(e)=>setSearch(e.target.value)} placeholder='Search ..'></input>
                 <select ref={selectSort} id="select_sort" 
                     onChange={()=>setSorting(selectSort.current!.value)}
                 >
-                    <option value="none">{'None'}</option>
-                    <option value="+date">{'New --> Old'}</option>
+                    <option value="%2Bdate">{'New --> Old'}</option>
                     <option value="-date">{'Old --> New'}</option>
                 </select>
                 <select ref={selectType} id="select_type"
@@ -73,7 +73,7 @@ const LogEvents: React.FC = () => {
                     })
                 }
             </div>
-        </div>
+        </StyledContainer>
     );
 }
 

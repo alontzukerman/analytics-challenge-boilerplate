@@ -28,12 +28,12 @@ const DashBoard: React.FC = () => {
   return (
     <div id="dashBoard" style={style}>
         <AllEventsGM />
-        <UrlPerUser />
-        <TotalTimeUrlOfAllUsers />
         <UniqueSessionsByDay />
         <UniqueSessionsByHour />
         <RetentionCohortByWeeks />
         <LogEvents />
+        {/* <UrlPerUser /> */}
+        {/* <TotalTimeUrlOfAllUsers /> */}
     </div>
   );
 };

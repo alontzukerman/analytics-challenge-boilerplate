@@ -124,9 +124,11 @@ export const getSessionsByDay = () => {
   })
   .sortBy('date')
   .value();
+  console.log(result);
   let temp = [];
   let temp_date = result[0].date ;
   let counter = 1 ;
+
   for(let i=1 ; i<result.length ; i++){
     if(result[i].date === temp_date)
       counter++;
@@ -138,6 +140,20 @@ export const getSessionsByDay = () => {
   }
   temp.push({date: temp_date, count: counter});
   return temp;
+
+  // let index: number = 0;
+  // for(let i=0 ; i<result.length ; i++) {
+  //   const exists = eByDays.some((element: DayAndSessionCount, i: number) => {
+  //     if (element.date === e.date) {
+  //       index = i;
+  //       return true;
+  //     }
+  //     return false;
+  //   });
+
+    // if(temp.includes(result[i].date))
+  // }
+
 }
 
 export const getSessionsByHour = (selectedDate: number) => {
@@ -192,18 +208,62 @@ export const getAllFilteredEvents = (filters: Filter) => {
         if(isFiltered){
           if(key === "type") isFiltered = filters.type == "all" ? true : event.name == filters.type ;
           if(key === "browser") isFiltered = filters.browser == "all" ? true : event.browser == filters.browser ;
-          if(key === "search") isFiltered = event.name.includes(filters.search) ;
+          if(key === "search"){
+            isFiltered = false ;
+            switch(true){
+              case event._id.includes(filters.search!): 
+                isFiltered = true ;
+                break ;
+              case event.session_id.includes(filters.search!):
+                isFiltered = true ;
+                break ;
+              case event.name.includes(filters.search!):
+                isFiltered = true ;
+                break ;
+              case event.url.includes(filters.search!):
+                isFiltered = true ;
+                break ;
+              case event.distinct_user_id.includes(filters.search!):
+                isFiltered = true ;
+                break ;
+              case event.date.toString().includes(filters.search!):
+                isFiltered = true ;
+                break ;
+              case event.os.includes(filters.search!):
+                isFiltered = true ;
+                break ;
+              case event.browser.includes(filters.search!):
+                isFiltered = true ;
+                break ;
+              
+            }
+          }
         }
         else return false ;
       })
       return isFiltered ;
     })
-    .sortBy(()=>{
-      return filters.sorting != "none" ? 'date' : '';
-    })
+    .sortBy('date')
     .value();
-  if(filters.sorting[0] === '-') return result.reverse();
+  if(filters.sorting && filters.sorting[0] === '-') return result.reverse();
   else return result ;
+}
+
+export const addNewEvent = (Event: Event) => {
+  db.get(EVENT_TABLE).push(Event).write();
+}
+
+// export const getLoginPrecentForWeekToUsers = (usersId: string[],startingDate: string) => {
+//   db.get(EVENT_TABLE)
+//   .filter(event=>{
+
+//   })
+
+//   })
+// }
+export const getRetentionCohort = (dayZero: number) => {
+  const startFromDate = new Date(dayZero).toISOString().slice(0,10);
+
 }
 export const getAllUsers = () => db.get(USER_TABLE).value();
 

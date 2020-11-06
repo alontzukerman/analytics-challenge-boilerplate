@@ -3,6 +3,8 @@ import React, { useEffect, useState, useRef } from 'react';
 import {
     LineChart , Line , XAxis , YAxis , CartesianGrid , Tooltip , Legend , ReferenceLine , ResponsiveContainer
 } from 'recharts' ;
+import StyledContainer from '../../containers/StyledContainer';
+
 const d3 = require('d3-time');
 
 const UniqueSessionsByHour: React.FC = () => {
@@ -39,7 +41,7 @@ const UniqueSessionsByHour: React.FC = () => {
         getSessionsByHour();
     },[offset]);
     return (
-        <div id="uniqueSessionsByHour" style={{gridArea: '2 / 1 / 3 / 3'}}>
+        <StyledContainer id="uniqueSessionsByHour" style={{gridArea: '3 / 1 / 4 / 4'}}>
             <input type="date" id="end-date-hours" ref={input}
                 onChange={handleInputChange}
                 value={inputValue} 
@@ -56,7 +58,7 @@ const UniqueSessionsByHour: React.FC = () => {
                     <Line type="monotone" dataKey="count" stroke="#8884d8" />
                 </LineChart>
             </ResponsiveContainer>
-        </div>
+        </StyledContainer>
     );
 }
 

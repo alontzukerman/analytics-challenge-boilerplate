@@ -3,7 +3,7 @@ import axios from 'axios';
 import { GoogleMap, LoadScript, Marker, InfoWindow, useLoadScript, Circle } from '@react-google-maps/api';
 import { Libraries } from '@react-google-maps/api/dist/utils/make-load-script-url';
 import { Event } from '../../models/event';
-
+import StyledContainer from '../../containers/StyledContainer';
 const API_KEY = 'AIzaSyA3nI9aB4gqX8stDIQer2-q3AzK2lrsKIs';
 const libraries: Libraries = ["places"];
 const mapContainerStyle = {
@@ -48,7 +48,7 @@ const AllEventsGM: React.FC = () => {
     if(!isLoaded) return <div>Loading Maps</div>;
 
     return (
-        <div id="allEventsGM" style={{gridArea: '1 / 3 / 2 / 7'}}>
+        <StyledContainer id="allEventsGM" style={{gridArea: '1 / 1 / 2 / 7'}}>
             <GoogleMap
                 mapContainerStyle={mapContainerStyle}
                 zoom={2}
@@ -70,7 +70,7 @@ const AllEventsGM: React.FC = () => {
                 }
                 
             </GoogleMap>
-        </div>
+        </StyledContainer>
     );
 }
 
