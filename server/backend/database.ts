@@ -86,6 +86,11 @@ export type TDatabase = {
   events: Event[];
 };
 
+interface DateAndCount {
+  date: string;
+  count: number;
+}
+
 const USER_TABLE = "users";
 const CONTACT_TABLE = "contacts";
 const BANK_ACCOUNT_TABLE = "bankaccounts";
@@ -113,22 +118,50 @@ export const seedDatabase = () => {
 
 export const getAllEvents = () => db.get(EVENT_TABLE).value();
 
+export const getParseDate = (date: number) => {
+  let day: string | number = new Date(date).getDate() ;
+  day = day < 10 ? '0'+day : day ;
+  let month: string | number = new Date(date).getMonth() ;
+  month = month < 10 ? '0'+month : month ;
+  let year = new Date(date).getFullYear() ;
+  return day+'-'+month+'-'+year ;
+}
+
+export const getParseHour = (date: number) => {
+  let hour: string | number = new Date(date).getHours() ;
+  hour = hour < 10 ? '0'+hour : hour ;
+  let minute: string | number = new Date(date).getMinutes() ;
+  minute = minute < 10 ? '0'+minute : minute ;
+  return hour+':00';
+}
 export const getSessionsByDay = () => {
  const result = db
   .get(EVENT_TABLE)
+  .sortBy('date')
   .map(event=>{
     return {
       session_id: event.session_id,
-      date: new Date(event.date).toISOString().slice(0,10)
+      date: getParseDate(event.date)
     }
   })
-  .sortBy('date')
-  .value();
-  console.log(result);
+  .value()
+  // let temp: DateAndCount[] = [];
+  // let counter ;
+  // for(let i=0 ; i<result.length ; i++){
+  //   let exists = temp.some((obj: DateAndCount)=>{
+  //     return obj.date === result[i].date ;
+  //   })
+  //   if(!exists){
+  //     counter = result.filter(e=>e.date===result[i].date).length;
+  //     temp.push({date: result[i].date , count: counter});
+  //   }
+ 
+  // }
+  // return temp;
+
   let temp = [];
   let temp_date = result[0].date ;
   let counter = 1 ;
-
   for(let i=1 ; i<result.length ; i++){
     if(result[i].date === temp_date)
       counter++;
@@ -140,20 +173,6 @@ export const getSessionsByDay = () => {
   }
   temp.push({date: temp_date, count: counter});
   return temp;
-
-  // let index: number = 0;
-  // for(let i=0 ; i<result.length ; i++) {
-  //   const exists = eByDays.some((element: DayAndSessionCount, i: number) => {
-  //     if (element.date === e.date) {
-  //       index = i;
-  //       return true;
-  //     }
-  //     return false;
-  //   });
-
-    // if(temp.includes(result[i].date))
-  // }
-
 }
 
 export const getSessionsByHour = (selectedDate: number) => {
@@ -162,12 +181,12 @@ export const getSessionsByHour = (selectedDate: number) => {
     .map(event=>{
       return ({
         session_id: event.session_id,
-        date: new Date(event.date).toISOString().slice(0,10),
-        hour: new Date(event.date).toISOString().slice(11,13)+":00"
+        date: getParseDate(event.date),
+        hour: getParseHour(event.date)
       });
     })
     .filter(event=>{
-      return event.date === new Date(selectedDate).toISOString().slice(0,10);
+      return event.date === getParseDate(selectedDate);
     })
     .sortBy('hour')
     .value();
@@ -183,19 +202,24 @@ export const getSessionsByHour = (selectedDate: number) => {
     let temp_hour = hours[hours_index];
     let counter = 0 ;
 
-    for(let i=0 ; i<result.length ; i++){
-      if(result[i].hour === temp_hour) counter++
-      else {
-        temp.push({hour: temp_hour,count: counter});
-        temp_hour = hours[++hours_index] ;
-        counter = 0;
-      }
+    for(let i=0 ; i < hours.length ; i++){
+      counter = result.filter((event)=>event.hour===hours[i]).length ;
+      temp.push({hour: hours[i] , count: counter});
     }
-    temp.push({hour: temp_hour,count: counter});
-    while(hours_index < hours.length-1){
-      temp_hour = hours[++hours_index] ;
-      temp.push({hour: temp_hour,count: 0});
-    }
+
+    // for(let i=0 ; i<result.length ; i++){
+    //   if(result[i].hour === temp_hour) counter++
+    //   else {
+    //     temp.push({hour: temp_hour,count: counter});
+    //     temp_hour = hours[++hours_index] ;
+    //     counter = 0;
+    //   }
+    // }
+    // temp.push({hour: temp_hour,count: counter});
+    // while(hours_index < hours.length-1){
+    //   temp_hour = hours[++hours_index] ;
+    //   temp.push({hour: temp_hour,count: 0});
+    // }
     return temp ;
 }
 
