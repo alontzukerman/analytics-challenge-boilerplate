@@ -3,16 +3,16 @@ import React, { useEffect, useState, useRef } from 'react';
 import {
     LineChart , Line , XAxis , YAxis , CartesianGrid , Tooltip , Legend , ReferenceLine , ResponsiveContainer
 } from 'recharts' ;
+
 import StyledContainer from '../../containers/StyledContainer';
 
 const d3 = require('d3-time');
 
 const UniqueSessionsByDay: React.FC = () => {
 
-    const todayDate: string = new Date().toISOString().slice(0,10) ;
-
+    const todayDate: string = new Date(new Date(new Date().toDateString()).getTime()+6*60*60*1000).toISOString().slice(0,10);
     const [info , setInfo] = useState();
-    const [lastSessionDate , setLastSessionDate] = useState<string | undefined>();
+    const [lastSessionDate , setLastSessionDate] = useState<string>(todayDate);
     const [offset , setOffset] = useState(0);
     const [inputValue , setInputValue] = useState<string>(todayDate);
 
@@ -42,7 +42,7 @@ const UniqueSessionsByDay: React.FC = () => {
         getSessionsByDay();
     },[offset]);
     return (
-        <StyledContainer id="uniqueSessionsByDay" style={{gridArea: '2 / 1 / 3 / 3'}}>
+        <StyledContainer id="uniqueSessionsByDay" style={{gridArea: '3 / 5 / 4 / 7'}}>
             <input type="date" id="end-date-days" ref={input}
                 onChange={handleInputChange}
                 value={inputValue} 

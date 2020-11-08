@@ -9,7 +9,7 @@ const d3 = require('d3-time');
 
 const UniqueSessionsByHour: React.FC = () => {
 
-    const todayDate: string = new Date().toISOString().slice(0,10) ;
+    const todayDate: string = new Date(new Date(new Date().toDateString()).getTime()+6*60*60*1000).toISOString().slice(0,10);
 
     const [info , setInfo] = useState();
     const [offset , setOffset] = useState(0);
@@ -41,7 +41,7 @@ const UniqueSessionsByHour: React.FC = () => {
         getSessionsByHour();
     },[offset]);
     return (
-        <StyledContainer id="uniqueSessionsByHour" style={{gridArea: '3 / 1 / 4 / 4'}}>
+        <StyledContainer id="uniqueSessionsByHour" style={{gridArea: '3 / 1 / 4 / 5'}}>
             <input type="date" id="end-date-hours" ref={input}
                 onChange={handleInputChange}
                 value={inputValue} 

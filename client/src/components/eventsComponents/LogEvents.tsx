@@ -4,7 +4,7 @@ import { Event } from '../../models/event';
 import StyledContainer from '../../containers/StyledContainer';
 
 const style = {
-    gridArea: '3 / 4 / 4 / 7',
+    gridArea: '4 / 1 / 5 / 7',
     display: 'flex',
     border: '1px solid black'
 }

@@ -2,8 +2,8 @@ import React from "react";
 import { Interpreter } from "xstate";
 import { AuthMachineContext, AuthMachineEvents } from "../machines/authMachine";
 import AllEventsGM from '../components/eventsComponents/AllEventsGM';
-import UrlPerUser from '../components/eventsComponents/UrlPerUser';
-import TotalTimeUrlOfAllUsers from '../components/eventsComponents/TotalTimeUrlOfAllUsers';
+import PageViews from '../components/eventsComponents/PageViews';
+import UsersByOS from '../components/eventsComponents/UsersByOS';
 import UniqueSessionsByDay from '../components/eventsComponents/UniqueSessionsByDay';
 import UniqueSessionsByHour from '../components/eventsComponents/UniqueSessionsByHour';
 import RetentionCohortByWeeks from '../components/eventsComponents/RetentionCohortByWeeks';
@@ -20,7 +20,7 @@ const DashBoard: React.FC = () => {
     height: '100%',
     width: '100%',
     gridTemplateColumns: '1fr 1fr 1fr 1fr 1fr 1fr',
-    gridTemplateRows: '50vh 50vh 50vh',
+    gridTemplateRows: '40vh 40vh 40vh 40vh 40vh',
     gridAutoRows: 'auto',
     gridAutoColumns: 'auto',
     gridGap: '3vh'
@@ -32,8 +32,8 @@ const DashBoard: React.FC = () => {
         <UniqueSessionsByHour />
         <RetentionCohortByWeeks />
         <LogEvents />
-        {/* <UrlPerUser /> */}
-        {/* <TotalTimeUrlOfAllUsers /> */}
+        <PageViews />
+        <UsersByOS />
     </div>
   );
 };
