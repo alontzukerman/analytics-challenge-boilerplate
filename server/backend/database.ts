@@ -49,7 +49,8 @@ import {
   NotificationResponseItem,
   TransactionQueryPayload,
   DefaultPrivacyLevel,
-  Event
+  Event,
+  weeklyRetentionObject
 } from "../../client/src/models";
 import Fuse from "fuse.js";
 import {
@@ -72,6 +73,7 @@ import { DbSchema } from "../../client/src/models/db-schema";
 import e from "express";
 import { keys } from "lodash";
 import { Filter } from './event-routes'
+import { start } from "repl";
 
 
 export type TDatabase = {
@@ -119,11 +121,11 @@ export const seedDatabase = () => {
 export const getAllEvents = () => db.get(EVENT_TABLE).value();
 
 export const getParseDate = (date: number) => {
-  let day: string | number = new Date(date).getDate() ;
+  let day: string | number = new Date(+date).getDate() ;
   day = day < 10 ? '0'+day : day ;
-  let month: string | number = new Date(date).getMonth() ;
+  let month: string | number = new Date(+date).getMonth()+1 ;
   month = month < 10 ? '0'+month : month ;
-  let year = new Date(date).getFullYear() ;
+  let year = new Date(+date).getFullYear() ;
   return day+'-'+month+'-'+year ;
 }
 
@@ -250,9 +252,9 @@ export const getAllFilteredEvents = (filters: Filter) => {
               case event.distinct_user_id.includes(filters.search!):
                 isFiltered = true ;
                 break ;
-              case event.date.toString().includes(filters.search!):
-                isFiltered = true ;
-                break ;
+              // case event.date.toString().includes(filters.search!):
+              //   isFiltered = true ;
+              //   break ;
               case event.os.includes(filters.search!):
                 isFiltered = true ;
                 break ;
@@ -273,22 +275,106 @@ export const getAllFilteredEvents = (filters: Filter) => {
   else return result ;
 }
 
+export const getOneWeekDate = (start_date: number) => {
+  return new Date(new Date(+start_date+6*24*60*60*1000).toDateString()).getTime();
+}
+export const getNextWeekDate = (start_date: number) => {
+  const oneWeek: number = 7*24*60*60*1000 ;
+  const nextWeekDate: string = new Date(+start_date+oneWeek).toDateString();
+  const start_next_week_date: number = new Date(nextWeekDate).getTime();
+  return start_next_week_date ;
+
+}
+export const isInThisWeek = (date: number, start_date: number) => {
+  let start = new Date(new Date(start_date).toDateString()).getTime();
+  let end = getNextWeekDate(start_date);
+  return start < date && date < end ;
+}
+
+export const getAllSignupForWeek = (start_date: number) => {
+  const signupEvents: string[] = db.get(EVENT_TABLE)
+    .filter(event=>{
+      return event.name === 'signup' && isInThisWeek(event.date,start_date);
+    })
+    .map(event=>{
+      return event.distinct_user_id ;
+    })
+    .value();
+    return signupEvents ;
+}
+
+export const getAllLoginsForWeek = (start_date: number) => {
+  let loginEvents: string[] = db.get(EVENT_TABLE)
+    .filter(event=>{
+      return event.name == 'login' && isInThisWeek(event.date,start_date);
+    })
+    .map(event=>{
+      return event.distinct_user_id
+    })
+    .value();
+    return loginEvents ;
+}
+
+export const getReturnOfUsers = (rUsers: string[], lUsers: string[]) => {
+  let counter = 0 ;
+  for(let i=0 ; i < rUsers.length ; i++) {
+    counter += lUsers.find(lUser=>lUser === rUsers[i]) ? 1 : 0 ; 
+  }
+  let precent = rUsers.length === 0 ? 0 : counter / rUsers.length ;
+  return precent ;
+}
+
+export const getWeeklyRetention = (rUsers: string[],start_date: number) => {
+  let retention = [100];
+  let start_week_date: number = start_date ;
+  let lUsers: string[] ;
+  while (getNextWeekDate(start_week_date) < new Date().getTime()) {
+    lUsers = getAllLoginsForWeek(start_week_date);
+    retention.push(getReturnOfUsers(rUsers,lUsers));
+    start_week_date = getNextWeekDate(start_week_date);
+  }
+  lUsers = getAllLoginsForWeek(start_week_date);
+  retention.push(getReturnOfUsers(rUsers,lUsers));
+  return retention ;
+}
+
+export const getRetentionCohort = (start_date: number) => {
+  let getWeeklyRetentionCohort: weeklyRetentionObject[] = [];
+  let start_week_date: number = start_date ;
+  let start_next_week_date: number = getNextWeekDate(start_week_date);
+  let registrationWeek = 1 ;
+  let rUsers: string[] ;
+  while(start_next_week_date < new Date().getTime()) {
+    console.log(start_week_date)
+    rUsers = getAllSignupForWeek(start_week_date);
+    console.log("HAPPY",rUsers);
+    let obj: weeklyRetentionObject = {
+        registrationWeek: registrationWeek++,
+        newUsers: rUsers.length,
+        weeklyRetention: getWeeklyRetention(rUsers,getNextWeekDate(start_week_date)),
+        start: getParseDate(start_week_date),
+        end: getParseDate(getOneWeekDate(start_week_date))
+      };
+    getWeeklyRetentionCohort.push(obj);
+    start_week_date = start_next_week_date ;
+    start_next_week_date = getNextWeekDate(start_week_date); 
+  }
+  rUsers = getAllSignupForWeek(start_week_date);
+  let obj: weeklyRetentionObject = {
+    registrationWeek: registrationWeek++,
+    newUsers: rUsers.length,
+    weeklyRetention: getWeeklyRetention(rUsers,getNextWeekDate(start_week_date)),
+    start: getParseDate(start_week_date),
+    end: getParseDate(getOneWeekDate(start_week_date))
+  };
+  getWeeklyRetentionCohort.push(obj);
+
+  return getWeeklyRetentionCohort ;
+}
 export const addNewEvent = (Event: Event) => {
   db.get(EVENT_TABLE).push(Event).write();
 }
 
-// export const getLoginPrecentForWeekToUsers = (usersId: string[],startingDate: string) => {
-//   db.get(EVENT_TABLE)
-//   .filter(event=>{
-
-//   })
-
-//   })
-// }
-export const getRetentionCohort = (dayZero: number) => {
-  const startFromDate = new Date(dayZero).toISOString().slice(0,10);
-
-}
 export const getAllUsers = () => db.get(USER_TABLE).value();
 
 export const getAllPublicTransactions = () =>

@@ -76,8 +76,8 @@ router.get('/week', (req: Request, res: Response) => {
 
 router.get('/retention', (req: Request, res: Response) => {
   const {dayZero} = req.query ;
-  // const weeklyRetentionCohort: weeklyRetentionObject[] = getRetentionCohort(dayZero)
-  res.send('/retention')
+  const weeklyRetentionCohort: weeklyRetentionObject[] = getRetentionCohort(dayZero);
+  res.send(weeklyRetentionCohort)
 });
 router.get('/:eventId',(req : Request, res : Response) => {
   res.send('/:eventId')
