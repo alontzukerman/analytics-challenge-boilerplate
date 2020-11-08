@@ -279,14 +279,15 @@ export const getOneWeekDate = (start_date: number) => {
   return new Date(new Date(+start_date+6*24*60*60*1000).toDateString()).getTime();
 }
 export const getNextWeekDate = (start_date: number) => {
-  const oneWeek: number = 7*24*60*60*1000 ;
+
+  const oneWeek: number = 7*24*60*60*1000+2*60*60*1000 ;
   const nextWeekDate: string = new Date(+start_date+oneWeek).toDateString();
   const start_next_week_date: number = new Date(nextWeekDate).getTime();
   return start_next_week_date ;
 
 }
 export const isInThisWeek = (date: number, start_date: number) => {
-  let start = new Date(new Date(start_date).toDateString()).getTime();
+  let start = new Date(new Date(+start_date).toDateString()).getTime();
   let end = getNextWeekDate(start_date);
   return start < date && date < end ;
 }
@@ -294,7 +295,7 @@ export const isInThisWeek = (date: number, start_date: number) => {
 export const getAllSignupForWeek = (start_date: number) => {
   const signupEvents: string[] = db.get(EVENT_TABLE)
     .filter(event=>{
-      return event.name === 'signup' && isInThisWeek(event.date,start_date);
+      return event.name == 'signup' && isInThisWeek(event.date,start_date);
     })
     .map(event=>{
       return event.distinct_user_id ;
@@ -320,8 +321,8 @@ export const getReturnOfUsers = (rUsers: string[], lUsers: string[]) => {
   for(let i=0 ; i < rUsers.length ; i++) {
     counter += lUsers.find(lUser=>lUser === rUsers[i]) ? 1 : 0 ; 
   }
-  let precent = rUsers.length === 0 ? 0 : counter / rUsers.length ;
-  return precent ;
+  let precent = rUsers.length === 0 ? 0 : (counter / rUsers.length)*100 ;
+  return Math.round(precent) ;
 }
 
 export const getWeeklyRetention = (rUsers: string[],start_date: number) => {
